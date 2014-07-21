@@ -11,24 +11,22 @@ class LispToken
     end
 end
 
-class TypeRegex
-    attr_accessor :tokenType, :regex
-
-    def initialize(tokenType, regex)
-        @tokenType = tokenType
-        @regex = regex
-    end
-end
-
 class Scanner
     def initialize()
-        @regexes = Array.new(6)
-        @regexes[0] = TypeRegex.new(:leftParen, /\A\(/)
-        @regexes[1] = TypeRegex.new(:rightParen, /\A\)/)
-        @regexes[2] = TypeRegex.new(:quote, /\A'/)
-        @regexes[3] = TypeRegex.new(:integer, /\A-?[1-9][0-9]*/)
-        @regexes[4] = TypeRegex.new(:string, /\A".*?"/m)
-        @regexes[5] = TypeRegex.new(:symbol, /\A[a-zA-Z]\w*/)
+        @regexes = Array.new(6) { Hash.new }
+
+        @regexes[0][:type] = :leftParen
+        @regexes[0][:regex] = /\A\(/
+        @regexes[1][:type] = :rightParen
+        @regexes[1][:regex] = /\A\)/
+        @regexes[2][:type] = :quote
+        @regexes[2][:regex] = /\A'/
+        @regexes[3][:type] = :integer
+        @regexes[3][:regex] = /\A(0|-?[1-9][0-9]*)/
+        @regexes[4][:type] = :string
+        @regexes[4][:regex] = /\A".*?"/m
+        @regexes[5][:type] = :symbol
+        @regexes[5][:regex] = /\A[a-zA-Z]\w*/
     end
 
     def scan(fileName)
@@ -38,8 +36,8 @@ class Scanner
         lispInput.each_line do |line|
             text = line.lstrip
             while !text.empty?
-                m = @regexes.find { |v| v.regex =~ text }
-                tokens.push(LispToken.new(m.tokenType, $&))
+                m = @regexes.find { |v| v[:regex] =~ text }
+                tokens.push LispToken.new(m[:type], $&)
                 text = $'.lstrip
             end
         end

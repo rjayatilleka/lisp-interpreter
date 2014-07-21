@@ -1,2 +1,2 @@
-(list a 123 "Hello, World!"
+(list a 0 123 "Hello, World!"
     '() -2)
