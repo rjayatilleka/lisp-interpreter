@@ -3,4 +3,6 @@
 require './scanner'
 
 s = Scanner.new
-puts s.scan("input.txt")
+file = File.new("input.txt", "r")
+puts s.scan(file)
+file.close
