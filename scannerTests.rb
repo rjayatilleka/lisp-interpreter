@@ -99,4 +99,12 @@ class ScannerTest < MiniTest::Unit::TestCase
             .push({:type => :symbol, :lexeme => "b"})
             .push({:type => :lexicalError, :lexeme => "2 d)"})
     end
+
+    def test_erronous_multiple_lines
+        @text = "(a b 2 \nd)"
+        @expectedTokens.push({:type => :leftParen, :lexeme => "("})
+            .push({:type => :symbol, :lexeme => "a"})
+            .push({:type => :symbol, :lexeme => "b"})
+            .push({:type => :lexicalError, :lexeme => "2 \n"})
+    end
 end
