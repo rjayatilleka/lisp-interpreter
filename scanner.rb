@@ -2,67 +2,71 @@ class RLispException < StandardError
 end
 
 class RLispSyntaxException < RLispException
-    attr_reader :msg, :line, :column
-    def initialize(msg, line, column)
-        @msg = msg
-        @line = line
-        @column = column
-    end
+  attr_reader :msg, :line, :column, :tokens
+  def initialize(msg, line, column, tokens)
+    @msg = msg
+    @line = line
+    @column = column
+    @tokens = tokens
+  end
 
-    def message
-        "Syntax Error at line #{line}, column #{column}: #{msg}"
-    end
+  def message
+    "Syntax Error at line #{line}, column #{column}: #{msg}"
+  end
 end
 
 class Scanner
-    def initialize()
-        @wsRegex = /\A\s*/
+  def initialize()
+    @regexes = Array.new(6) { Hash.new }
 
-        @regexes = Array.new(4) { Hash.new }
+    @regexes[0][:type] = :whitespace
+    @regexes[0][:regex] = /\A\s+/
 
-        @regexes[0][:type] = :leftParen
-        @regexes[0][:regex] = /\A\(/
+    @regexes[1][:type] = :leftParen
+    @regexes[1][:regex] = /\A\(/
 
-        @regexes[1][:type] = :rightParen
-        @regexes[1][:regex] = /\A\)/
+    @regexes[2][:type] = :rightParen
+    @regexes[2][:regex] = /\A\)/
 
-        @regexes[2][:type] = :quote
-        @regexes[2][:regex] = /\A'/
+    @regexes[3][:type] = :quote
+    @regexes[3][:regex] = /\A'/
 
-        @regexes[3][:type] = :symbol
-        @regexes[3][:regex] = /\A[a-zA-Z]\w*/
+    @regexes[4][:type] = :symbol
+    @regexes[4][:regex] = /\A[a-zA-Z]\w*/
 
-#        @regexes[3][:type] = :integer
-#        @regexes[3][:regex] = /\A(0|-?[1-9][0-9]*)/
+    @regexes[5][:type] = :lexicalError
+    @regexes[5][:regex] = /\A.+/m
 
-#        @regexes[4][:type] = :string
-#        @regexes[4][:regex] = /\A".*?"/m
-    end
+    #        @regexes[3][:type] = :integer
+    #        @regexes[3][:regex] = /\A(0|-?[1-9][0-9]*)/
 
-    def scan(lispInput)
-        tokens = []
-        lineNumber = 0
+    #        @regexes[4][:type] = :string
+    #        @regexes[4][:regex] = /\A".*?"/m
+  end
 
-        lispInput.each_line do |line|
-            lineNumber += 1
-            column = 1
+  def scan(lispInput)
+    tokens = []
+    lineNumber = 0
 
-            while !line.empty?
-                @wsRegex =~ line
-                line = $'
-                column += $&.length
+    lispInput.each_line do |line|
+      lineNumber += 1
+      column = 1
 
-                m = @regexes.find { |v| v[:regex] =~ line }
-                if m
-                    tokens.push({:type => m[:type], :lexeme => $&})
-                    line = $'
-                    column += $&.length
-                else
-                    raise RLispSyntaxException.new("Unknown token.", lineNumber, column)
-                end
-            end
+      while !line.empty?
+        m = @regexes.find { |v| v[:regex] =~ line }
+
+        if m[:type] == :lexicalError
+          raise RLispSyntaxException
+            .new("Unknown token.", lineNumber, column, tokens)
+        elsif m[:type] != :whitespace
+          tokens.push({:type => m[:type], :lexeme => $&})
         end
 
-        tokens
+        line = $'
+        column += $&.length
+      end
     end
+
+    tokens
+  end
 end
