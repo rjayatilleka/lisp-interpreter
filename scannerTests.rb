@@ -22,6 +22,14 @@ class ScannerTest < MiniTest::Unit::TestCase
     matchTokens @expectedTokens, resultTokens
   end
 
+  def run_tests_with_syntax_error(line, column)
+    err = assert_raises(RLispSyntaxError) { @s.scan(@text) }
+    
+    assert_equal line, err.line
+    assert_equal column, err.column
+    matchTokens @expectedTokens, err.tokens
+  end
+
   def test_empty_string
     @text = ""
     run_tests_no_errors()
@@ -98,12 +106,12 @@ class ScannerTest < MiniTest::Unit::TestCase
 
   def test_integer
     @text = "1"
-    @expectedTokens.push({:type => :lexicalError, :lexeme => "1"})
+    run_tests_with_syntax_error 1, 1
   end
 
   def test_string
     @text = "\"Hello, world!\""
-    @expectedTokens.push({:type => :lexicalError, :lexeme => "\"Hello, world!\""})
+    run_tests_with_syntax_error 1, 1
   end
 
   def test_valid_with_gibberish
@@ -111,14 +119,14 @@ class ScannerTest < MiniTest::Unit::TestCase
     @expectedTokens.push({:type => :leftParen, :lexeme => "("})
       .push({:type => :symbol, :lexeme => "a"})
       .push({:type => :symbol, :lexeme => "b"})
-      .push({:type => :lexicalError, :lexeme => "2 d)"})
+    run_tests_with_syntax_error 1, 6
   end
 
   def test_erronous_multiple_lines
-    @text = "(a b 2 \nd)"
+    @text = "(a b \n2 d)"
     @expectedTokens.push({:type => :leftParen, :lexeme => "("})
       .push({:type => :symbol, :lexeme => "a"})
       .push({:type => :symbol, :lexeme => "b"})
-      .push({:type => :lexicalError, :lexeme => "2 \n"})
+    run_tests_with_syntax_error 2, 1
   end
 end

@@ -1,17 +1,16 @@
-class RLispException < StandardError
+class RLispError < StandardError
 end
 
-class RLispSyntaxException < RLispException
-  attr_reader :msg, :line, :column, :tokens
-  def initialize(msg, line, column, tokens)
-    @msg = msg
+class RLispSyntaxError < RLispError
+  attr_reader :line, :column, :tokens
+  def initialize(line, column, tokens)
     @line = line
     @column = column
     @tokens = tokens
   end
 
   def message
-    "Syntax Error at line #{line}, column #{column}: #{msg}"
+    "Syntax Error at line #{line}, column #{column}."
   end
 end
 
@@ -56,8 +55,7 @@ class Scanner
         m = @regexes.find { |v| v[:regex] =~ line }
 
         if m[:type] == :lexicalError
-          raise RLispSyntaxException
-            .new("Unknown token.", lineNumber, column, tokens)
+          raise RLispSyntaxError.new(lineNumber, column, tokens)
         elsif m[:type] != :whitespace
           tokens.push({:type => m[:type], :lexeme => $&})
         end
