@@ -35,12 +35,6 @@ class Scanner
 
     @regexes[5][:type] = :lexicalError
     @regexes[5][:regex] = /\A.+/m
-
-    #        @regexes[3][:type] = :integer
-    #        @regexes[3][:regex] = /\A(0|-?[1-9][0-9]*)/
-
-    #        @regexes[4][:type] = :string
-    #        @regexes[4][:regex] = /\A".*?"/m
   end
 
   def scan(lispInput)
