@@ -4,6 +4,9 @@ end
 class RLispNil < RLispExpr
 end
 
+class RLispTrue < RLispExpr
+end
+
 class Parser
 
   attr_accessor :tokens
@@ -15,6 +18,17 @@ class Parser
       @tokens.shift
       @tokens.shift
       return RLispNil.new
+    else
+      return nil
+    end
+  end
+
+  def parseTrue
+    if @tokens.length > 0 and
+        @tokens[0][:type] == :symbol and
+        @tokens[0][:lexeme] == "t"
+      @tokens.shift
+      return RLispTrue.new
     else
       return nil
     end
